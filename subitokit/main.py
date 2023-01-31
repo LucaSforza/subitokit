@@ -217,15 +217,3 @@ def run_query(url:str, name:str, minPrice:str, maxPrice:str) -> subito_query:
             if maxPrice == "null" or price == "Unknown price__" or price[:-2]<=maxPrice:
                 query += product(title,price[:-2],location,link)
     return query
-
-if __name__ == '__main__':
-
-    url = 'https://www.subito.it/annunci-italia/vendita/usato/?q=ryzen+5+5600x'
-    name = 'Ryzen 5 5600x'
-    min_price = '100'
-    max_price = '130'
-
-    query = run_query(url,name,min_price,max_price)
-
-    query.refresh()
-    print(query)
