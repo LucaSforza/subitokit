@@ -24,3 +24,10 @@ for prod in query.refresh():
     print(prod)
 
 ```
+## How to build it
+
+To build it ,just write in the terminal :
+```
+pip3 install .
+```
+After that you can use this package in all projects where you might need it.
