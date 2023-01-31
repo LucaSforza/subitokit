@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup, Tag
 import json
 import requests
 import re
+from inspect import currentframe,getargvalues
 from copy import copy
 
 class product:
@@ -190,7 +191,13 @@ def load_query(pathname:str) -> subito_query:
 
     return query
 
-def run_query(url, name, minPrice, maxPrice) -> subito_query:
+def run_query(url:str, name:str, minPrice:str, maxPrice:str) -> subito_query:
+
+    frame = currentframe()
+    args, _, _, values = getargvalues(frame)
+
+    if any([type(values[par])!=str for par in args]):
+        raise ValueError("All the parameters must be a string")
     
     query = subito_query(name,url,minPrice,maxPrice)
     page = requests.get(url)
