@@ -127,32 +127,30 @@ class subito_query:
     
     def refresh(self) -> list[product]:
 
-        query = self.to_dict()
-
         try:
-            for search in query.items():
-                for url in search[1].items():
-                    for minP in url[1].items():
-                        for maxP in minP[1].items():
-                            new_quary = run_query(url[0], search[0], minP[0], maxP[0])
+            new_quary = run_query(self.url, self.name, self.min_price, self.max_price)
         except requests.exceptions.ConnectionError:
-            print("***Connection error***")
+            print("***Connection error when executing .refresh()***")
+            return []
         except requests.exceptions.Timeout:
-            print("***Server timeout error***")
+            print("***Server timeout error when executing .refresh()***")
+            return []
         except requests.exceptions.HTTPError:
-            print("***HTTP error***")
+            print("***HTTP error when executing .refresh()***")
+            return []
 
         app = copy(self.prods)
-        new = []
+        new_prods = []
+
         for p in app:
             if not p in new_quary:
                 self.delete(p)
+
         for new_p in new_quary:
             if not new_p in self.prods:
                 self.add(new_p)
-                new.append(new_p)
-        return new
-        
+                new_prods.append(new_p)
+        return new_prods
 
     def delete(self,to_delete:product) -> None:
         self.prods.remove(to_delete)
@@ -219,3 +217,15 @@ def run_query(url:str, name:str, minPrice:str, maxPrice:str) -> subito_query:
             if maxPrice == "null" or price == "Unknown price__" or price[:-2]<=maxPrice:
                 query += product(title,price[:-2],location,link)
     return query
+
+if __name__ == '__main__':
+
+    url = 'https://www.subito.it/annunci-italia/vendita/usato/?q=ryzen+5+5600x'
+    name = 'Ryzen 5 5600x'
+    min_price = '100'
+    max_price = '130'
+
+    query = run_query(url,name,min_price,max_price)
+
+    query.refresh()
+    print(query)
