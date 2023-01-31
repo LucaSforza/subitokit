@@ -3,8 +3,6 @@
 import requests
 from bs4 import BeautifulSoup, Tag
 import json
-import os
-import platform
 import requests
 import re
 from copy import copy
