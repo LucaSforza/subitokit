@@ -87,17 +87,9 @@ class subito_query:
         return subito_query(self.name,self.url,self.min_price,self.max_price,prods=new_prods)
     
     def __str__(self) -> str:
-        s = ''
-        query = self.to_dict()
-        for search in query.items():
-            s+=f"\nsearch: {search[0]}\n"
-            for query_url in search[1]:
-                s+=f"query url: {query_url}\n"
-                for url in search[1].items():
-                    for minP in url[1].items():
-                        for maxP in minP[1].items():
-                            for result in maxP[1].items():
-                                s+=f"\n\n {result[1].get('title')} : {result[1].get('price')} --> {result[1].get('location')}\n {result[0]}"
+        s = f"\nsearch: {self.name}\nquery url: {self.url}\n"
+        for prod in self.prods:
+            s+=f"\n\n {prod.title} : {prod.price} --> {prod.location}\n {prod.link}"
         return s
   
     def __repr__(self) -> str:
