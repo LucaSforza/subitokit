@@ -1,4 +1,4 @@
 .DS_Store
-tests/
+subitokit/test.py
 subitokit/__pycache__/
 dist/

@@ -1,16 +1,18 @@
 #!/usr/bin/env python3.10.9
 
-import requests
-from bs4 import BeautifulSoup, Tag
+#stdlib
 import json
-import requests
 import re
 from inspect import currentframe,getargvalues
 from copy import copy
 
+# third party
+import requests
+from bs4 import BeautifulSoup, Tag
+
 class product:
 
-    def __init__(self,title:str,price,location:str,link:str) -> None:
+    def __init__(self,title:str,price:str,location:str,link:str) -> None:
         self.title = title
         self.price = price
         self.location = location
@@ -62,10 +64,11 @@ class subito_query:
     def __add__(self,other):
         new_prods = copy(self.prods)
         if isinstance(other,product):
-            new_prods.append(other)
+            if not other in self.prods:
+                new_prods.append(other)
         elif isinstance(other,list):
             if all([type(prod)==product for prod in other]):
-                new_prods.extend(other)
+                new_prods.extend(list(set(other) - set(self.prods)))
             else:
                 raise TypeError(f"unsupported operand type(s) for +: 'subito_query' and '{type(other)}' ,with 'subito_query' you can add only 'product' or 'list[product]'")
         else:
@@ -75,11 +78,13 @@ class subito_query:
     def __sub__(self,other):
         new_prods = copy(self.prods)
         if isinstance(other,product):
-            new_prods.remove(other)
+            if other in self.prods:
+                new_prods.remove(other)
         elif isinstance(other,list):
             if all([type(prod)==product for prod in other]):
                 for prod in other:
-                    new_prods.remove(prod)
+                    if prod in self.prods:
+                        new_prods.remove(prod)
             else:
                 raise TypeError(f"unsupported operand type(s) for -: 'subito_query' and '{type(other)}' ,with 'subito_query' you can subtract only 'product' or 'list[product]'")
         else:
@@ -97,10 +102,11 @@ class subito_query:
     
     def add(self,new_prod) -> None:
         if isinstance(new_prod,product):
-            self.prods.append(new_prod)
+            if not new_prod in self.prods:
+                self.prods.append(new_prod)
         elif isinstance(new_prod,list):
             if all([type(prod)==product for prod in new_prod]):
-                self.prods.extend(new_prod)
+                self.prods.extend(list(set(new_prod) - set(self.prods)))
             else:
                 raise TypeError("In the list there are obj that are not: 'product'")
         else:
@@ -116,9 +122,6 @@ class subito_query:
         return query
 
     def to_json(self,pathname=None,indent=0):
-        """
-            Return a json string if not specificate 'pathname'
-            Save in to a json file if specificate 'pathname'"""
 
         if pathname:
             with open(pathname,'w') as f:
@@ -159,25 +162,28 @@ class subito_query:
         self.prods.sort(key=key,reverse=reverse)
 
 
-def load_product_from_dict(link,prod:dict)->product:
-    items = list(prod.items())
-    return product(items[0][1],items[1][1],items[2][1],link)
+def load_product(prod:dict) -> product:
+    items = list(prod.items())[0]
+    parametres = list(items[1].items())
+    return product(parametres[0][1],parametres[1][1],parametres[2][1],items[0])
 
 def load_query(pathname:str) -> subito_query:
+
     with open(pathname,'r') as f:
         query_dict:dict = json.load(f)
-    for search in query_dict.items():
-        name = search[0]
-        for query_url in search[1]:
-            url = query_url
-            for u in search[1].items():
-                for minP in u[1].items():
-                    min_price = minP[0]
-                    for maxP in minP[1].items():
-                        max_price = maxP[0]
-                        query = subito_query(name,url,min_price,max_price)
-                        for result in maxP[1].items():
-                            query += load_product_from_dict(result[0],result[1])
+
+    app = list(query_dict.items())[0]
+    name = app[0]
+    app = list(app[1].items())[0]
+    url = app[0]
+    app = list(app[1].items())[0]
+    min_price = app[0]
+    app = list(app[1].items())[0]
+    max_price = app[0]
+    query = subito_query(name,url,min_price,max_price)
+    for prod in app[1].items():
+        prod_dict = {prod[0]:prod[1]}
+        query+=load_product(prod_dict)
 
     return query
 
