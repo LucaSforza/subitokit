@@ -10,6 +10,8 @@ from copy import copy
 import requests
 from bs4 import BeautifulSoup, Tag
 
+#TODO: modify-dict-query-structure
+
 class product:
 
     def __init__(self,title:str,price:str,location:str,link:str) -> None:
