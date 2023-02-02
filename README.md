@@ -10,7 +10,6 @@ filter the results and easily manipulate them with pythone code.
 ```py
 from subitokit import *
 
-url = 'https://www.subito.it/annunci-italia/vendita/usato/?q=ryzen+5+5600x'
 name = 'Ryzen 5 5600x'
 min_price = '100'
 max_price = '130'
