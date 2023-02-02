@@ -211,12 +211,14 @@ def load_query(query_dict:dict) -> subito_query:
 
     return query
 
-def run_query(url:str, name:str, minPrice:str, maxPrice:str) -> subito_query:
+def run_query(name:str, minPrice:str, maxPrice:str) -> subito_query:
 
     args, _, _, values = getargvalues(currentframe())
 
     if any([type(values[par])!=str for par in args]):
         raise ValueError("All the parameters must be a string")
+
+    url = 'https://www.subito.it/annunci-italia/vendita/usato/?q='+name
     
     query = subito_query(name,url,minPrice,maxPrice)
     page = requests.get(url)
