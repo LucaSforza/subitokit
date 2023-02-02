@@ -155,7 +155,7 @@ class subito_query:
     def refresh(self) -> list[product]:
 
         try:
-            new_quary = run_query(self.url, self.name, self.min_price, self.max_price)
+            new_quary = run_query(self.name, self.min_price, self.max_price,url=self.url)
         except requests.exceptions.ConnectionError:
             print("***Connection error when executing .refresh()***")
             return []
@@ -211,14 +211,15 @@ def load_query(query_dict:dict) -> subito_query:
 
     return query
 
-def run_query(name:str, minPrice:str, maxPrice:str) -> subito_query:
+def run_query(name:str, minPrice:str, maxPrice:str,url='') -> subito_query:
 
     args, _, _, values = getargvalues(currentframe())
 
     if any([type(values[par])!=str for par in args]):
         raise ValueError("All the parameters must be a string")
 
-    url = 'https://www.subito.it/annunci-italia/vendita/usato/?q='+name
+    if url == '':
+        url = 'https://www.subito.it/annunci-italia/vendita/usato/?q='+name
     
     query = subito_query(name,url,minPrice,maxPrice)
     page = requests.get(url)
