@@ -15,12 +15,16 @@ name = 'Ryzen 5 5600x'
 min_price = '100'
 max_price = '130'
 
-query = run_query(url,name,min_price,max_price)
+query = run_query(name,min_price,max_price)
 query.sort() #if key not specified it sort by price
 
 print(query)
+
 #.refresh() is used to reload the query, update it and return extra products (if there are)
-for prod in query.refresh():
+new_prods=query.refresh()
+
+print('Refreshed query:')
+for prod in query:
     print(prod)
 
 ```
