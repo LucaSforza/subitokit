@@ -39,9 +39,7 @@ class product:
         return True
 
     def to_dict(self) -> dict:
-        prod = dict()
-        prod[self.link] = {'title': self.title, 'price': self.price, 'location': self.location}
-        return prod
+        return {'title': self.title, 'price': self.price, 'location': self.location, 'link':self.link}
 
 class subito_query:
 
@@ -60,6 +58,28 @@ class subito_query:
     
     def __len__(self) -> int:
         return self.prods.__len__()
+
+    def __eq__(self, other) -> bool:
+
+        if isinstance(other,subito_query):
+
+            if self.name != other.name:
+                return False
+            if self.url != other.url:
+                return False
+            if self.min_price != other.min_price:
+                return False
+            if self.max_price != other.max_price:
+                return False
+
+            for prod in self.prods:
+                if not prod in other:
+                    return False
+
+        else:
+            return False
+
+        return True
     
     def __add__(self,other):
         new_prods = copy(self.prods)
@@ -113,12 +133,16 @@ class subito_query:
             raise TypeError("only supported operand for add to query: 'product'")
     
     def to_dict(self) -> dict:
-        query = dict()
-        for prod in self.prods:
-            if not query.get(self.name):
-                query[self.name] = {self.url:{self.min_price: {self.max_price: {prod.link: {'title': prod.title, 'price': prod.price, 'location': prod.location}}}}}
-            else:
-                query[self.name][self.url][self.min_price][self.max_price][prod.link] ={'title': prod.title, 'price': prod.price, 'location': prod.location}
+
+        query              = dict()
+
+        query['name']      = self.name
+        query['url']       = self.url
+        query['min_price'] = self.min_price
+        query['max_price'] = self.max_price
+
+        query['products']  = list(map(lambda x:x.to_dict(),self.prods))
+
         return query
 
     def to_json(self,pathname=None,indent=0):
@@ -156,41 +180,40 @@ class subito_query:
         return new_prods
 
     def delete(self,to_delete:product) -> None:
-        self.prods.remove(to_delete)
+
+        if to_delete in self.prods:
+            self.prods.remove(to_delete)
 
     def sort(self,key=lambda x:x.price,reverse=False) -> None:
         self.prods.sort(key=key,reverse=reverse)
 
 
-def load_product(prod:dict) -> product:
-    items = list(prod.items())[0]
-    parametres = list(items[1].items())
-    return product(parametres[0][1],parametres[1][1],parametres[2][1],items[0])
+def load_product(prod_dict:dict) -> product:
 
-def load_query(pathname:str) -> subito_query:
+    return product(
+        prod_dict.get('title','Null'),
+        prod_dict.get('price','Unknown price'),
+        prod_dict.get('location','Unknown location'),
+        prod_dict.get('link','Null')
+    )
 
-    with open(pathname,'r') as f:
-        query_dict:dict = json.load(f)
+def load_query(query_dict:dict) -> subito_query:
 
-    app = list(query_dict.items())[0]
-    name = app[0]
-    app = list(app[1].items())[0]
-    url = app[0]
-    app = list(app[1].items())[0]
-    min_price = app[0]
-    app = list(app[1].items())[0]
-    max_price = app[0]
-    query = subito_query(name,url,min_price,max_price)
-    for prod in app[1].items():
-        prod_dict = {prod[0]:prod[1]}
-        query+=load_product(prod_dict)
+    query = subito_query(
+        query_dict.get('name','Null'),
+        query_dict.get('url','Null'),
+        query_dict.get('min_price','Null'),
+        query_dict.get('max_price','Null')
+    )
+
+    for prod_dict in query_dict.get('products',[]):
+        query += load_product(prod_dict)
 
     return query
 
 def run_query(url:str, name:str, minPrice:str, maxPrice:str) -> subito_query:
 
-    frame = currentframe()
-    args, _, _, values = getargvalues(frame)
+    args, _, _, values = getargvalues(currentframe())
 
     if any([type(values[par])!=str for par in args]):
         raise ValueError("All the parameters must be a string")
