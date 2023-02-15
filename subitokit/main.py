@@ -3,12 +3,13 @@
 #stdlib
 import json
 import re
-from inspect import currentframe,getargvalues
 from copy import copy
+from inspect import currentframe, getargvalues
 
 # third party
 import requests
 from bs4 import BeautifulSoup, Tag
+
 
 class product:
 
@@ -43,7 +44,7 @@ class product:
 
 class subito_query:
 
-    def __init__(self,name:str,url:str,min_price:int,max_price:int,prods=None) -> None:
+    def __init__(self,name:str,url:str,min_price:str,max_price:str,prods=None) -> None:
         if not prods:
             self.prods:list[product] = []
         else:
@@ -211,7 +212,7 @@ def load_query(query_dict:dict) -> subito_query:
 
     return query
 
-def run_query(name:str, minPrice:str, maxPrice:str,url='') -> subito_query:
+def run_query(name:str, minPrice='Null', maxPrice='Null',url='') -> subito_query:
 
     args, _, _, values = getargvalues(currentframe())
 
