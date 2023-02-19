@@ -10,10 +10,11 @@ from inspect import currentframe, getargvalues
 import requests
 from bs4 import BeautifulSoup, Tag
 
+#TODO: aggiungere test e vedere se funziona l'implementazione del prezzo in interi
 
 class product:
 
-    def __init__(self,title:str,price:str,location:str,link:str) -> None:
+    def __init__(self,title:str,price:int,location:str,link:str) -> None:
         self.title = title
         self.price = price
         self.location = location
@@ -44,7 +45,7 @@ class product:
 
 class subito_query:
 
-    def __init__(self,name:str,url:str,min_price:str,max_price:str,prods=None) -> None:
+    def __init__(self,name:str,url:str,min_price:int,max_price:int,prods=None) -> None:
         if not prods:
             self.prods:list[product] = []
         else:
@@ -212,12 +213,18 @@ def load_query(query_dict:dict) -> subito_query:
 
     return query
 
-def run_query(name:str, minPrice='Null', maxPrice='Null',url='') -> subito_query:
+def run_query(name:str, minPrice='null', maxPrice='null',url='') -> subito_query:
 
     args, _, _, values = getargvalues(currentframe())
 
     if any([type(values[par])!=str for par in args]):
         raise ValueError("All the parameters must be a string")
+
+    if not minPrice == 'null':
+        minPrice = int(minPrice)
+    
+    if not maxPrice == 'null':
+        maxPrice = int(maxPrice)
 
     if url == '':
         url = 'https://www.subito.it/annunci-italia/vendita/usato/?q='+name
@@ -232,21 +239,24 @@ def run_query(name:str, minPrice='Null', maxPrice='Null',url='') -> subito_query
         title = p.find('h2').string
                 
         try:
-            price=p.find('p',class_=re.compile(r'price')).contents[0]
+
+            price =p.find('p',class_=re.compile(r'price')).contents[0]
+            
             # check if the span tag exists
             price_soup = BeautifulSoup(price, 'html.parser')
             if type(price_soup) == Tag:
                 continue
+            price = int(price.replace('.','')[:-2])
             #at the moment (20.5.2021) the price is under the 'p' tag with 'span' inside if shipping available
 
         except:
-            price = "Unknown price__"
+            price = "Unknown price"
         link = p.parent.parent.parent.parent.get('href') 
         try:
             location = p.find('span',re.compile(r'town')).string + p.find('span',re.compile(r'city')).string
         except:
             location = "Unknown location"
-        if minPrice == "null" or price == "Unknown price__" or price[:-2]>=minPrice:
-            if maxPrice == "null" or price == "Unknown price__" or price[:-2]<=maxPrice:
-                query += product(title,price[:-2],location,link)
+        if minPrice == "null" or price == "Unknown price" or price>=minPrice:
+            if maxPrice == "null" or price == "Unknown price" or price<=maxPrice:
+                query += product(title,price,location,link)
     return query
