@@ -1,5 +1,8 @@
+tests/
+.pytest_cache
+.mypy_cache/
 .DS_Store
-subitokit/test.py
-subitokit/test.json
-subitokit/__pycache__/
+src/test.py
+src/test.json
+__pycache__/
 dist/

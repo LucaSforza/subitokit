@@ -5,6 +5,7 @@ import json
 import re
 from copy import copy
 from inspect import currentframe, getargvalues
+from dataclasses import dataclass,field
 
 # third party
 import requests
@@ -12,106 +13,33 @@ from bs4 import BeautifulSoup, Tag
 
 #TODO: aggiungere test e vedere se funziona l'implementazione del prezzo in interi
 
+
+@dataclass(frozen=True)
 class product:
 
-    def __init__(self,title:str,price:int,location:str,link:str) -> None:
-        self.title = title
-        self.price = price
-        self.location = location
-        self.link = link
-    
-    def __str__(self) -> str:
-        return f'title: {self.title}\nlink:  {self.link}\nprice: {self.price}\nlocation: {self.location}'
-
-    def __repr__(self) -> str:
-        return self.__str__()
-    
-    def __eq__(self, other) -> bool:
-        if isinstance(other,product):
-            if other.title != self.title:
-                return False
-            if other.price != self.price:
-                return False
-            if other.location != self.location:
-                return False
-            if other.link != self.link:
-                return False
-        else:
-            return False
-        return True
+    title    : str
+    price    : int
+    location : str
+    link     : str
 
     def to_dict(self) -> dict:
-        return {'title': self.title, 'price': self.price, 'location': self.location, 'link':self.link}
+        return self.__dict__
 
+@dataclass
 class subito_query:
 
-    def __init__(self,name:str,url:str,min_price:int,max_price:int,prods=None) -> None:
-        if not prods:
-            self.prods:list[product] = []
-        else:
-            self.prods = prods
-        self.name = name
-        self.url = url
-        self.min_price = min_price
-        self.max_price = max_price
+    name      : str
+    url       : str
+    min_price : int
+    max_price : int
+
+    prods : list[product] = field(default_factory=list)
 
     def __iter__(self):
         return iter(self.prods)
     
     def __len__(self) -> int:
         return self.prods.__len__()
-
-    def __eq__(self, other) -> bool:
-
-        if isinstance(other,subito_query):
-
-            if self.name != other.name:
-                return False
-            if self.url != other.url:
-                return False
-            if self.min_price != other.min_price:
-                return False
-            if self.max_price != other.max_price:
-                return False
-
-            for prod in self.prods:
-                if not prod in other:
-                    return False
-
-        else:
-            return False
-
-        return True
-    
-    def __add__(self,other):
-        new_prods = copy(self.prods)
-        if isinstance(other,product):
-            if not other in self.prods:
-                new_prods.append(other)
-        elif isinstance(other,list):
-            if all([type(prod)==product for prod in other]):
-                new_prods.extend(list(set(other) - set(self.prods)))
-            else:
-                raise TypeError(f"unsupported operand type(s) for +: 'subito_query' and '{type(other)}' ,with 'subito_query' you can add only 'product' or 'list[product]'")
-        else:
-            raise TypeError(f"unsupported operand type(s) for +: 'subito_query' and '{type(other)}' ,with 'subito_query' you can add only 'product' or 'list[product]'")
-        return subito_query(self.name,self.url,self.min_price,self.max_price,prods=new_prods)
-    
-    def __sub__(self,other):
-        new_prods = copy(self.prods)
-        if isinstance(other,product):
-            if other in self.prods:
-                new_prods.remove(other)
-        elif isinstance(other,list):
-            if all([type(prod)==product for prod in other]):
-                for prod in other:
-                    if prod in self.prods:
-                        new_prods.remove(prod)
-            else:
-                raise TypeError(f"unsupported operand type(s) for -: 'subito_query' and '{type(other)}' ,with 'subito_query' you can subtract only 'product' or 'list[product]'")
-        else:
-            raise TypeError(f"unsupported operand type(s) for -: 'subito_query' and '{type(other)}' ,with 'subito_query' you can subtract only 'product' or 'list[product]'")
-        return subito_query(self.name,self.url,self.min_price,self.max_price,prods=new_prods)
     
     def __str__(self) -> str:
         s = f"\nsearch: {self.name}\nquery url: {self.url}\n"
@@ -148,7 +76,6 @@ class subito_query:
         return query
 
     def to_json(self,pathname=None,indent=0):
-
         if pathname:
             with open(pathname,'w') as f:
                 json.dump(self.to_dict(),f,indent=indent)
@@ -181,14 +108,17 @@ class subito_query:
                 new_prods.append(new_p)
         return new_prods
 
-    def delete(self,to_delete:product) -> None:
+    def pop(self,i=None) -> product:
+        if i:
+            return self.prods.pop(i)
+        return self.prods.pop()
 
+    def delete(self,to_delete:product) -> None:
         if to_delete in self.prods:
             self.prods.remove(to_delete)
 
     def sort(self,key=lambda x:x.price,reverse=False) -> None:
         self.prods.sort(key=key,reverse=reverse)
-
 
 def load_product(prod_dict:dict) -> product:
 
@@ -202,14 +132,14 @@ def load_product(prod_dict:dict) -> product:
 def load_query(query_dict:dict) -> subito_query:
 
     query = subito_query(
-        query_dict.get('name','Null'),
-        query_dict.get('url','Null'),
-        query_dict.get('min_price','Null'),
-        query_dict.get('max_price','Null')
+        query_dict.get('name','null'),
+        query_dict.get('url','null'),
+        query_dict.get('min_price','null'),
+        query_dict.get('max_price','null')
     )
 
     for prod_dict in query_dict.get('products',[]):
-        query += load_product(prod_dict)
+        query.add(load_product(prod_dict))
 
     return query
 
@@ -258,5 +188,5 @@ def run_query(name:str, minPrice='null', maxPrice='null',url='') -> subito_query
             location = "Unknown location"
         if minPrice == "null" or price == "Unknown price" or price>=minPrice:
             if maxPrice == "null" or price == "Unknown price" or price<=maxPrice:
-                query += product(title,price,location,link)
+                query.add(product(title,price,location,link))
     return query
