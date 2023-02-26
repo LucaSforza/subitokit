@@ -11,8 +11,8 @@ filter the results and easily manipulate them with pythone code.
 from subitokit import *
 
 name = 'Ryzen 5 5600x'
-min_price = '100'
-max_price = '130'
+min_price = 100
+max_price = 130
 
 query = run_query(name,min_price,max_price)
 query.sort() #if key not specified it sort by price
@@ -27,10 +27,10 @@ for prod in query:
     print(prod)
 
 ```
-## How to build it
+## Installation
 
-To build it ,just write in the terminal :
+Install subitokit with pip
 ```
-pip3 install .
+pip install subitokit
 ```
 After that you can use this package in all projects where you might need it.

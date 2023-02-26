@@ -143,18 +143,7 @@ def load_query(query_dict:dict) -> subito_query:
 
     return query
 
-def run_query(name:str, minPrice='null', maxPrice='null',url='') -> subito_query:
-
-    args, _, _, values = getargvalues(currentframe())
-
-    if any([type(values[par])!=str for par in args]):
-        raise ValueError("All the parameters must be a string")
-
-    if not minPrice == 'null':
-        minPrice = int(minPrice)
-    
-    if not maxPrice == 'null':
-        maxPrice = int(maxPrice)
+def run_query(name:str, minPrice: int='null', maxPrice: int='null',url='') -> subito_query:
 
     if url == '':
         url = 'https://www.subito.it/annunci-italia/vendita/usato/?q='+name
