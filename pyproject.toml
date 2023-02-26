@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "subitokit"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python module searcher for subito.it"
 authors = ["LucaSforza <lucasforza1234@icloud.com>"]
 readme = "README.md"
