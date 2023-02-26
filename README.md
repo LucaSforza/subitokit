@@ -1,5 +1,7 @@
 # Module version of subito-it-searcher
 
+forked by [morrolinux/subito-it-searcher](https://github.com/morrolinux/subito-it-searcher)
+
 BeautifulSoup scraper running queries on a popular italian ad website.
 This module is compatible with Python 3.x versions.
 
